@@ -1,65 +1,55 @@
 pragma solidity ^0.4.10;
 
 contract TicTacToe {
-  public games mapping(address => Game)
+  mapping(address => Game) public games;
 
-  Game {
-    xPlayer: address,
-    oPlayer: address,
-    xTurn: bool,
-    gameOver: bool,
-    xWon: bool,
-    board: square[9]
+  struct Game {
+    address xPlayer;
+    address oPlayer;
+    bool xTurn;
+    bool gameOver;
+    bool xWon;
+    bytes32 board;
   }
 
-  Square {
-    hasPiece: bool,
-    pieceIsX: bool
-  }
-
-  function getGame(address gameAddress) returns Game {
-    games[gameAddress];
-  }
-
-  function createGame(address gameAddress, address opponent) returns Game {
-    // Fetch Game struct by random address
-    // Check to see it's not being used?
-    // Initialize it and return its address
+  function createGame(address gameAddress, address opponent) returns (bool) {
     Game game = games[gameAddress];
     require(game.xPlayer == address(0) && game.oPlayer == address(0));
     game.oPlayer = msg.sender;
     game.xPlayer = opponent;
+
+    return true;
   }
 
-  function move(address gameAddress, int8 squareIndex) {
-    Game game = games[gameAddress]; // TODO: Ensure there is a valid game at that address
-    bool playerIsX;
+  // function move(address gameAddress, int8 squareIndex) {
+  //   Game game = games[gameAddress]; // TODO: Ensure there is a valid game at that address
+  //   bool playerIsX;
 
-    if(game.xTurn) {
-      require(msg.sender == game.xAddress);
-      playerIsX = true;
-    } else {
-      require(msg.sender == game.oAddress);
-      playerIsX = false;
-    }
+  //   if(game.xTurn) {
+  //     require(msg.sender == game.xAddress);
+  //     playerIsX = true;
+  //   } else {
+  //     require(msg.sender == game.oAddress);
+  //     playerIsX = false;
+  //   }
 
-    Square square = game.squares[squareIndex];
-    require(square.hasPiece == false);
+  //   Square square = game.squares[squareIndex];
+  //   require(square.hasPiece == false);
 
-    square.hasPiece = true;
-    square.pieceIsX = playerIsX;
+  //   square.hasPiece = true;
+  //   square.pieceIsX = playerIsX;
 
-    game.xTurn = !game.xTurn;
-  }
+  //   game.xTurn = !game.xTurn;
+  // }
 
-  function winner(gameAddress) returns address {
-    Game game = games[gameAddress];
-    require(game.gameOver() == true);
+  // function winner(address gameAddress) returns (address) {
+  //   Game game = games[gameAddress];
+  //   require(game.gameOver == true);
 
-    if (game.xWon) {
-      return game.xPlayer;
-    } else {
-      return game.oPlayer;
-    }
-  }
+  //   if (game.xWon) {
+  //     return game.xPlayer;
+  //   } else {
+  //     return game.oPlayer;
+  //   }
+  // }
 }
