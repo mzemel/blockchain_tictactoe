@@ -1,4 +1,4 @@
-pragma solidity ^0.4.10;
+pragma solidity ^0.4.17;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
@@ -7,36 +7,23 @@ import "../contracts/TicTacToe.sol";
 contract TestTicTacToe {
   TicTacToe ticTacToe = TicTacToe(DeployedAddresses.TicTacToe());
 
-  // Do I really need to copy over this data structure?
-  struct Game {
-    address xPlayer;
-    address oPlayer;
-    bool xTurn;
-    bool gameOver;
-    bool xWon;
-    bytes32 board;
+  function testUserCanCreateBoard() public {
+    ticTacToe.createBoard();
+    uint value = ticTacToe.boards(this, 0, 0);
+    Assert.equal(value, 0, 'Boards are initialized to 0');
   }
 
-  function testUserCanGetGame() {
-    address gameAddress;
-
-    var(xPlayer, oPlayer, xTurn, gameOver, xWon, board) = ticTacToe.games(gameAddress);
-
-    Assert.equal(xTurn, false, 'New games start with Os turn.');
-    Assert.equal(gameOver, false, 'New games are not over.');
+  function testUserCanEnterMove() public {
+    ticTacToe.createBoard();
+    ticTacToe.enterMove(1,2,1);
+    uint value = ticTacToe.boards(this, 1, 2);
+    Assert.equal(value, 1, 'User can enter move.');
   }
 
-  function testUserCanCreateGame() {
-    address gameAddress;
-    address opponent;
-
-    bool success = ticTacToe.createGame(gameAddress, opponent);
-
-    Assert.equal(success, true, 'Game has been created.');
-
-    var(xPlayer, oPlayer, xTurn, gameOver, xWon, board) = ticTacToe.games(gameAddress);
-
-    Assert.equal(xPlayer, opponent, 'Opponent is X player.');
-    Assert.equal(oPlayer, this, 'Self is O player.');
-  }
+  // function testUserCanGetBoard() public {
+  //   ticTacToe.createBoard();
+  //   ticTacToe.enterMove(0,0,1);
+  //   uint[3][3] memory board = ticTacToe.getBoard();
+  //   Assert.equal(board[0][0], 1, 'User can get entire board.');
+  // }
 }
