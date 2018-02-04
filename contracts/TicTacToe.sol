@@ -1,19 +1,46 @@
 pragma solidity ^0.4.17;
 
 contract TicTacToe {
-  mapping (address => uint[3][3]) public boards;
-
-  function createBoard() public {
-    boards[msg.sender] = [[0,0,0],[0,0,0],[0,0,0]];
+  struct Game {
+    uint8[9] board;
+    address xPlayer;
+    address oPlayer;
+    bool xTurn;
+    bool gameOver;
+    bool xWon;
   }
 
-  function getBoard() public view returns (uint[3][3]) {
-    return boards[msg.sender];
+  Game[] public games;
+
+  function createGame(address _oPlayerAddr) public returns(uint) {
+    uint id = games.push(
+      Game(
+        [0,0,0,0,0,0,0,0,0],
+        msg.sender,
+        _oPlayerAddr,
+        true,
+        false,
+        false
+      )
+    );
+    return id;
   }
 
-  function enterMove (uint row, uint column, uint value) public {
-    // require(value == 1 || value == 2);
-    uint[3][3] storage board = boards[msg.sender];
-    board[row][column] = value;
+  function getGame(uint _id) external view returns (
+    uint8[9] board,
+    address xPlayer,
+    address oPlayer,
+    bool xTurn,
+    bool gameOver,
+    bool xWon
+  ) {
+    Game memory game = games[_id];
+
+    board = game.board;
+    xPlayer = game.xPlayer;
+    oPlayer = game.oPlayer;
+    xTurn = game.xTurn;
+    gameOver = game.gameOver;
+    xWon = game.xWon;
   }
 }
