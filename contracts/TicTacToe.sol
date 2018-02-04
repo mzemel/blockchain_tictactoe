@@ -1,8 +1,8 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.19;
 
 contract TicTacToe {
   struct Game {
-    uint8[9] board;
+    uint[9] board;
     address xPlayer;
     address oPlayer;
     bool xTurn;
@@ -15,26 +15,26 @@ contract TicTacToe {
   function createGame(address _oPlayerAddr) public returns(uint) {
     uint id = games.push(
       Game(
-        [0,0,0,0,0,0,0,0,0],
+        [uint(0),uint(0),uint(0),uint(0),uint(0),uint(0),uint(0),uint(0),uint(0)],
         msg.sender,
         _oPlayerAddr,
         true,
         false,
         false
       )
-    );
+    ) - 1;
     return id;
   }
 
   function getGame(uint _id) external view returns (
-    uint8[9] board,
+    uint[9] board,
     address xPlayer,
     address oPlayer,
     bool xTurn,
     bool gameOver,
     bool xWon
   ) {
-    Game memory game = games[_id];
+    Game storage game = games[_id];
 
     board = game.board;
     xPlayer = game.xPlayer;
