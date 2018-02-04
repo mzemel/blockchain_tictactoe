@@ -4,14 +4,14 @@ var TicTacToe = artifacts.require("TicTacToe");
 contract('TicTacToe', function(accounts) {
   var ticTacToe;
 
-  function toGame(destructuredGame) {
+  function toGame(data) {
     return {
-      board: destructuredGame[0],
-      xPlayer: destructuredGame[1],
-      oPlayer: destructuredGame[2],
-      xTurn: destructuredGame[3],
-      gameOver: destructuredGame[4],
-      xWon: destructuredGame[5]
+      board: data[0],
+      xPlayer: data[1],
+      oPlayer: data[2],
+      xTurn: data[3],
+      gameOver: data[4],
+      xWon: data[5]
     }
   }
 
@@ -23,17 +23,89 @@ contract('TicTacToe', function(accounts) {
     });
   });
 
-
-  it("should let a user get a game", function() {
-    return TicTacToe.deployed().then(function(instance) {
+  it("should let a user get a game", () => {
+    TicTacToe.deployed().then((instance) => {
       ticTacToe = instance;
       return ticTacToe.createGame(accounts[1]);
-    }).then(function(id) {
-      return ticTacToe.getGame.call(0); // Infer game is created with ID 0
-    }).then(function(destructuredGame) {
-      var game = toGame(destructuredGame);
-      assert.equal(accounts[1], game.oPlayer, "oPlayer is set correctly on the game");
-      assert.equal(game.board[0], 0, "Board is initialized to 0");
+    }).then(id => ticTacToe.getGame.call(0))
+      .then(toGame)
+      .then(game => {
+        assert.equal(game.oPlayer, accounts[1], "oPlayer is set correctly on the game");
+        assert.equal(game.xPlayer, accounts[0], 'xPlayer is created using msg.sender')
+        assert.equal(game.board[0], 0, "Board is initialized to 0");
+      })
+  });
+
+  it("should let a user enter a move", function() {
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(id => ticTacToe.enterMove(0, 1, 1))
+      .then(() => ticTacToe.getGame.call(0))
+      .then(toGame)
+      .then(game => {
+        assert.equal(game.board[1], 1, "Move is applied to board");
+        assert.equal(game.xTurn, false, "It is now oPlayer's turn");
+      })
+  });
+
+  it("should be game over (top row, X)", function() {
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(id => ticTacToe.enterMove(1, 0, 1))
+      .then(() => ticTacToe.enterMove(1, 1, 1))
+      .then(() => ticTacToe.enterMove(1, 2, 1))
+      .then(() => ticTacToe.getGame.call(1))
+      .then(toGame)
+      .then(game => {
+        assert.equal(game.gameOver, true, "Game is over");
+        assert.equal(game.xWon, true, "xPlayer has won");
+      })
     });
-  })
+
+  it("should be game over (left column, X)", function() {
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(id => ticTacToe.enterMove(2, 0, 1))
+      .then(() => ticTacToe.enterMove(2, 3, 1))
+      .then(() => ticTacToe.enterMove(2, 6, 1))
+      .then(() => ticTacToe.getGame.call(2))
+      .then(toGame)
+      .then(game => {
+        assert.equal(game.gameOver, true, "Game is over");
+        assert.equal(game.xWon, true, "xPlayer has won");
+      })
+    });
+
+  it("should be game over (diagonal, X)", function() {
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(id => ticTacToe.enterMove(3, 0, 1))
+      .then(() => ticTacToe.enterMove(3, 4, 1))
+      .then(() => ticTacToe.enterMove(3, 8, 1))
+      .then(() => ticTacToe.getGame.call(3))
+      .then(toGame)
+      .then(game => {
+        assert.equal(game.gameOver, true, "Game is over");
+        assert.equal(game.xWon, true, "xPlayer has won");
+      })
+    });
+
+  it("should be game over (top row, O)", function() {
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(id => ticTacToe.enterMove(4, 0, 2))
+      .then(() => ticTacToe.enterMove(4, 1, 2))
+      .then(() => ticTacToe.enterMove(4, 2, 2))
+      .then(() => ticTacToe.getGame.call(4))
+      .then(toGame)
+      .then(game => {
+        assert.equal(game.gameOver, true, "Game is over");
+        assert.equal(game.xWon, false, "oPlayer has won");
+      })
+    });
 });
