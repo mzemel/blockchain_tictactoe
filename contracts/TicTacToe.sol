@@ -12,7 +12,7 @@ contract TicTacToe {
 
   Game[] public games;
   mapping (address => uint) public myLastGame;
-  mapping (address => uint8) numberOfGames;
+  mapping (address => uint8) public numberOfGames;
 
   function createGame(address _oPlayerAddr) public returns(uint) {
     uint id = games.push(
@@ -57,10 +57,6 @@ contract TicTacToe {
     xTurn = game.xTurn;
     gameOver = game.gameOver;
     xWon = game.xWon;
-  }
-
-  function getNumberOfGames(address _address) public returns (uint8) {
-    return numberOfGames[_address];
   }
 
   function enterMove(uint _id, uint position, uint value) public {

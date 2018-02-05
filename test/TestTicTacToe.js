@@ -26,9 +26,9 @@ contract('TicTacToe', function(accounts) {
   it("keeps track of number of games", function() {
     return TicTacToe.deployed().then(function(instance) {
       ticTacToe = instance;
-      return instance.createGame.call(accounts[0]);
-    }).then(() => ticTacToe.getNumberOfGames.call(accounts[0]))
-      .then(number => assert.equal(number, 1, "User has 1 game"))
+      return instance.createGame(accounts[1]); // function commits, returns a uint
+    }).then(id => ticTacToe.numberOfGames.call(accounts[1])) // view function, should return a uint
+      .then(number => assert.equal(number, 1, "User has 1 game")) // AssertionError: User has 1 game: expected { Object (s, e, ...) } to equal 1
   });
 
   it("should let a user get a game", () => {
@@ -121,7 +121,7 @@ contract('TicTacToe', function(accounts) {
     TicTacToe.deployed().then((instance) => {
       ticTacToe = instance;
       return ticTacToe.createGame(accounts[1]);
-    }).then(() => ticTacToe.myLastGame.call(accounts[0]))
+    }).then(() => ticTacToe.myLastGame.call(accounts[1]))
       .then(id => {
         assert.notEqual(id, 0, "I have a recent game");
       })
@@ -131,11 +131,28 @@ contract('TicTacToe', function(accounts) {
     TicTacToe.deployed().then((instance) => {
       ticTacToe = instance;
       return ticTacToe.createGame(accounts[1]);
-    }).then(() => ticTacToe.myLastGame.call(accounts[0]))
-      .then(() => ticTacToe.clearGame())
+    }).then(() => ticTacToe.clearGame())
       .then(() => ticTacToe.myLastGame.call(accounts[0]))
       .then(id => {
-        assert.equal(id, 999999, "Game has been destroyed");
-      }).then()
+        assert.equal(id, 0, "Game has been destroyed");
+      })
   })
+
+  xit("can decrement the number of games", function() {
+    var originalNumberOfGames;
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.numberOfGames.call(accounts[1]);
+    }).then(_numberOfGames => {
+      originalNumberOfGames = _numberOfGames;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(() => {
+      return ticTacToe.clearGame()
+    }).then(() => {
+        return ticTacToe.numberOfGames.call(accounts[1])
+    }).then(numberOfGames => {
+        console.log(numberOfGames);
+        assert.equal(numberOfGames, originalNumberOfGames - 1, "User has 1 fewer games")
+      });
+  });
 });
