@@ -23,6 +23,14 @@ contract('TicTacToe', function(accounts) {
     });
   });
 
+  it("keeps track of number of games", function() {
+    return TicTacToe.deployed().then(function(instance) {
+      ticTacToe = instance;
+      return instance.createGame.call(accounts[0]);
+    }).then(() => ticTacToe.getNumberOfGames.call(accounts[0]))
+      .then(number => assert.equal(number, 1, "User has 1 game"))
+  });
+
   it("should let a user get a game", () => {
     TicTacToe.deployed().then((instance) => {
       ticTacToe = instance;
@@ -127,7 +135,7 @@ contract('TicTacToe', function(accounts) {
       .then(() => ticTacToe.clearGame())
       .then(() => ticTacToe.myLastGame.call(accounts[0]))
       .then(id => {
-        assert.equal(id, 0, "Game has been destroyed");
-      })
+        assert.equal(id, 999999, "Game has been destroyed");
+      }).then()
   })
 });

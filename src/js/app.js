@@ -101,8 +101,12 @@ App = {
         return ticTacToeInstance.getGame.call(id)
       }).then(App.toGame)
         .then(_game => {
-          debugger;
-          move = (game.xPlayer == account ? 1 : 2);
+          // Couple options:
+          //  1. If the player is X, send an X
+          //    move = (_game.xPlayer == account ? 1 : 2);
+          //  2. If the turn is X, send an X
+          move = (_game.xTurn ? 1 : 2)
+          //  For debugging, I'm sending whatever the turn is
         })
         .then(() => ticTacToeInstance.enterMove(gameId, squareId, move))
         .then(() => ticTacToeInstance.getGame.call(gameId))
@@ -112,23 +116,67 @@ App = {
     });
   },
 
+  // loadMyLastGame: function() {
+  //   web3.eth.getAccounts((error, accounts) => {
+  //     if (error) { console.log(error); }
+
+  //     var account = accounts[0];
+  //     var ticTacToeInstance;
+
+  //     App.contracts.TicTacToe.deployed().then(instance => {
+  //       ticTacToeInstance = instance;
+  //       return ticTacToeInstance.myLastGame.call(account);
+  //     }).then(id => {
+  //       console.log('Loading game ' + id.c[0]);
+  //       // return ticTacToeInstance.getGame.call(id.c[0]);
+  //       return ticTacToeInstance.getGame(id.c[0]);
+  //     })
+  //       .then(game => App.toGame(game))
+  //       .then(game => {
+  //         console.log(game);
+  //         App.updateBoard(game, account)
+  //       })
+  //       .catch(err => {
+  //         console.log(err.message);
+  //         console.log("Could not load board");
+  //         App.updateBoard(null, account);
+  //       })
+  //   });
+  // },
+
   loadMyLastGame: function() {
     web3.eth.getAccounts((error, accounts) => {
       if (error) { console.log(error); }
 
       var account = accounts[0];
       var ticTacToeInstance;
+      var numberOfGames;
+
+      App.contracts.TicTacToe.deployed().then(instance => {
+        ticTacToeInstance = instance;
+        return ticTacToeInstance.numberOfGames.call(account);
+      }).then(number => {
+        console.log('User has ' + number.c[0] + ' games.');
+        numberOfGames = number.c[0];
+      });
 
       App.contracts.TicTacToe.deployed().then(instance => {
         ticTacToeInstance = instance;
         return ticTacToeInstance.myLastGame.call(account);
       }).then(id => {
-        return ticTacToeInstance.getGame.call(id);
-      })
-        .then(App.toGame)
-        .then(game => App.updateBoard(game, account))
-        .catch(err => console.log(err.message))
-    });
+        console.log('Loading game ' + id.c[0]);
+        return ticTacToeInstance.getGame(id.c[0]);
+      }).then(game => App.toGame(game))
+        .then(game => {
+          console.log(game);
+          if (numberOfGames != 0) { App.updateBoard(game, account); }
+        })
+        .catch(err => {
+          console.log(err.message);
+          console.log("Could not load board");
+          App.updateBoard(null, account);
+        });
+      });
   },
 
   playerString: function(game, user) {
@@ -143,7 +191,7 @@ App = {
 
   toGame: function(data) {
     return {
-      board: data[0],
+      board: _.map(data[0], el => el.c[0]),
       xPlayer: data[1],
       oPlayer: data[2],
       xTurn: data[3],
@@ -161,8 +209,11 @@ App = {
         if (square == 0) {
           $('#board-' + index).text(" . ");
           $('#board-' + index).prop("disabled", false);
+        } else if (square == 1) {
+          $('#board-' + index).text("X");
+          $('#board-' + index).prop("disabled", true);
         } else {
-          $('#board-' + index).text(square);
+          $('#board-' + index).text("O");
           $('#board-' + index).prop("disabled", true);
         }
       });
@@ -171,7 +222,14 @@ App = {
       $('#player-info').text('You are ' + playerString);
 
       var turn = (game.xTurn ? 'X' : 'O');
-      $('#player-turn').text('It is Player ' + turn + "'s turn!");  
+      $('#player-turn').text('It is Player ' + turn + "'s turn!");
+
+      if (game.gameOver) {
+        var winner = (game.xWon ? 'X' : 'O');
+        $('#player-won').text('Player ' + winner + ' has won!');
+        $('#player-won').show();
+        $('#board > div > button').prop("disabled", true);
+      }
     } else {
       $('#game').hide();
       $('#create-game').show();

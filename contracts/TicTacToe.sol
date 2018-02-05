@@ -2,7 +2,7 @@ pragma solidity ^0.4.19;
 
 contract TicTacToe {
   struct Game {
-    uint[9] board;
+    uint8[9] board;
     address xPlayer;
     address oPlayer;
     bool xTurn;
@@ -12,11 +12,12 @@ contract TicTacToe {
 
   Game[] public games;
   mapping (address => uint) public myLastGame;
+  mapping (address => uint8) numberOfGames;
 
   function createGame(address _oPlayerAddr) public returns(uint) {
     uint id = games.push(
       Game(
-        [uint(0),uint(0),uint(0),uint(0),uint(0),uint(0),uint(0),uint(0),uint(0)],
+        [uint8(0),uint8(0),uint8(0),uint8(0),uint8(0),uint8(0),uint8(0),uint8(0),uint8(0)],
         msg.sender,
         _oPlayerAddr,
         true,
@@ -25,16 +26,23 @@ contract TicTacToe {
       )
     ) - 1;
     myLastGame[msg.sender] = id;
+    numberOfGames[msg.sender]++;
     myLastGame[_oPlayerAddr] = id;
+    numberOfGames[_oPlayerAddr]++;
     return id;
   }
 
   function clearGame() public {
+    Game memory game = games[myLastGame[msg.sender]];
     myLastGame[msg.sender] = 0;
+    numberOfGames[msg.sender]--;
+    myLastGame[game.oPlayer] = 0;
+    numberOfGames[game.oPlayer]--;
+    // delete games[myLastGame[msg.sender]];
   }
 
   function getGame(uint _id) external view returns (
-    uint[9] board,
+    uint8[9] board,
     address xPlayer,
     address oPlayer,
     bool xTurn,
@@ -51,9 +59,13 @@ contract TicTacToe {
     xWon = game.xWon;
   }
 
+  function getNumberOfGames(address _address) public returns (uint8) {
+    return numberOfGames[_address];
+  }
+
   function enterMove(uint _id, uint position, uint value) public {
     Game storage game = games[_id];
-    game.board[position] = value;
+    game.board[position] = uint8(value);
     game.xTurn = !game.xTurn;
 
     bool _gameOver;
@@ -71,7 +83,7 @@ contract TicTacToe {
     bool _gameOver,
     bool _xWon
   ) {
-    uint[9] memory board = games[_id].board;
+    uint8[9] memory board = games[_id].board;
 
     _gameOver = false;
     _xWon = false;
