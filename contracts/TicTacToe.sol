@@ -11,6 +11,7 @@ contract TicTacToe {
   }
 
   Game[] public games;
+  mapping (address => uint) public myLastGame;
 
   function createGame(address _oPlayerAddr) public returns(uint) {
     uint id = games.push(
@@ -23,7 +24,13 @@ contract TicTacToe {
         false
       )
     ) - 1;
+    myLastGame[msg.sender] = id;
+    myLastGame[_oPlayerAddr] = id;
     return id;
+  }
+
+  function clearGame() public {
+    myLastGame[msg.sender] = 0;
   }
 
   function getGame(uint _id) external view returns (

@@ -108,4 +108,26 @@ contract('TicTacToe', function(accounts) {
         assert.equal(game.xWon, false, "oPlayer has won");
       })
     });
+
+  it("can return my last game", function() {
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(() => ticTacToe.myLastGame.call(accounts[0]))
+      .then(id => {
+        assert.notEqual(id, 0, "I have a recent game");
+      })
+  })
+
+  it("can destroy a game", function() {
+    TicTacToe.deployed().then((instance) => {
+      ticTacToe = instance;
+      return ticTacToe.createGame(accounts[1]);
+    }).then(() => ticTacToe.myLastGame.call(accounts[0]))
+      .then(() => ticTacToe.clearGame())
+      .then(() => ticTacToe.myLastGame.call(accounts[0]))
+      .then(id => {
+        assert.equal(id, 0, "Game has been destroyed");
+      })
+  })
 });

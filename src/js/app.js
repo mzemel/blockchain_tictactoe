@@ -3,23 +3,6 @@ App = {
   contracts: {},
 
   init: function() {
-    // Load pets.
-    $.getJSON('../pets.json', function(data) {
-      var petsRow = $('#petsRow');
-      var petTemplate = $('#petTemplate');
-
-      for (i = 0; i < data.length; i ++) {
-        petTemplate.find('.panel-title').text(data[i].name);
-        petTemplate.find('img').attr('src', data[i].picture);
-        petTemplate.find('.pet-breed').text(data[i].breed);
-        petTemplate.find('.pet-age').text(data[i].age);
-        petTemplate.find('.pet-location').text(data[i].location);
-        petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
-
-        petsRow.append(petTemplate.html());
-      }
-    });
-
     return App.initWeb3();
   },
 
@@ -38,69 +21,162 @@ App = {
   },
 
   initContract: function() {
-    $.getJSON('Adoption.json', function(data) {
+    $.getJSON('TicTacToe.json', function(data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract.
-      var AdoptionArtifact = data;
-      App.contracts.Adoption = TruffleContract(AdoptionArtifact);
+      var TicTacToeArtifact = data;
+      App.contracts.TicTacToe = TruffleContract(TicTacToeArtifact);
 
       // Set the provider for our contract.
-      App.contracts.Adoption.setProvider(App.web3Provider);
+      App.contracts.TicTacToe.setProvider(App.web3Provider);
 
-      // Use our contract to retieve and mark the adopted pets.
-      return App.markAdopted();
+      // Any on-load callbacks
+      App.loadMyLastGame();
     });
 
     return App.bindEvents();
   },
 
   bindEvents: function() {
-    $(document).on('click', '.btn-adopt', App.handleAdopt);
+    $(document).on('click', '#create-game > div > .btn-submit', App.handleCreateGame);
+    $(document).on('click', '#board > .row > button', App.handleEnterMove);
+    $(document).on('click', '#destroy-game', App.handleDestroyGame);
   },
 
-  handleAdopt: function() {
+  handleCreateGame() {
     event.preventDefault();
 
-    var petId = parseInt($(event.target).data('id'));
+    var opponentAddress = $('#create-game > div > input').val();
 
-    var adoptionInstance;
-
-    web3.eth.getAccounts(function(error, accounts) {
-      if (error) {
-        console.log(error);
-      }
+    web3.eth.getAccounts((error, accounts) => {
+      if (error) { console.log(error); }
 
       var account = accounts[0];
+      var ticTacToeInstance;
 
-      App.contracts.Adoption.deployed().then(function(instance) {
-        adoptionInstance = instance;
-
-        return adoptionInstance.adopt(petId, {from: account});
-      }).then(function(result) {
-        return App.markAdopted();
-      }).catch(function(err) {
-        console.log(err.message);
-      });
+      App.contracts.TicTacToe.deployed().then(instance => {
+        ticTacToeInstance = instance;
+        return ticTacToeInstance.createGame(opponentAddress);
+      }).then(id => ticTacToeInstance.getGame.call(id))
+        .then(App.toGame)
+        .then(game => App.updateBoard(game, accounts[0]))
+        .catch(err => console.log(err.message))
     });
   },
 
-  markAdopted: function(adopters, account) {
-    var adoptionInstance;
+  handleDestroyGame() {
+    event.preventDefault();
 
-    App.contracts.Adoption.deployed().then(function(instance) {
-      adoptionInstance = instance;
+    web3.eth.getAccounts((error, accounts) => {
+      if (error) { console.log(error); }
 
-      return adoptionInstance.getAdopters.call();
-    }).then(function(adopters) {
-      for (i = 0; i < adopters.length; i++) {
-        if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-          $('.panel-pet').eq(i).find('button').text('Pending...').attr('disabled', true);
-        }
-      }
-    }).catch(function(err) {
-      console.log(err.message);
+      var account = accounts[0];
+      var ticTacToeInstance;
+
+      App.contracts.TicTacToe.deployed().then(instance => {
+        ticTacToeInstance = instance;
+        return ticTacToeInstance.clearGame();
+      }).then(game => App.updateBoard(null, account))
+        .catch(err => console.log(err.message))
     });
-  }
+  },
 
+  handleEnterMove: function() {
+    event.preventDefault();
+
+    var squareId = parseInt($(event.target).data('id'));
+
+    web3.eth.getAccounts((error, accounts) => {
+      if (error) { console.log(error); }
+
+      var account = accounts[0];
+      var ticTacToeInstance;
+      var gameId;
+      var move;
+
+      App.contracts.TicTacToe.deployed().then(instance => {
+        ticTacToeInstance = instance;
+        return ticTacToeInstance.myLastGame.call(account);
+      }).then(id => {
+        gameId = id;
+        return ticTacToeInstance.getGame.call(id)
+      }).then(App.toGame)
+        .then(_game => {
+          debugger;
+          move = (game.xPlayer == account ? 1 : 2);
+        })
+        .then(() => ticTacToeInstance.enterMove(gameId, squareId, move))
+        .then(() => ticTacToeInstance.getGame.call(gameId))
+        .then(App.toGame)
+        .then(game => App.updateBoard(game, account))
+        .catch(err => console.log(err.message))
+    });
+  },
+
+  loadMyLastGame: function() {
+    web3.eth.getAccounts((error, accounts) => {
+      if (error) { console.log(error); }
+
+      var account = accounts[0];
+      var ticTacToeInstance;
+
+      App.contracts.TicTacToe.deployed().then(instance => {
+        ticTacToeInstance = instance;
+        return ticTacToeInstance.myLastGame.call(account);
+      }).then(id => {
+        return ticTacToeInstance.getGame.call(id);
+      })
+        .then(App.toGame)
+        .then(game => App.updateBoard(game, account))
+        .catch(err => console.log(err.message))
+    });
+  },
+
+  playerString: function(game, user) {
+    if (game.xPlayer == user) {
+      return "Player X";
+    } else if (game.oPlayer == user) {
+      return "Player O";
+    } else {
+      return "Observing";
+    }
+  },
+
+  toGame: function(data) {
+    return {
+      board: data[0],
+      xPlayer: data[1],
+      oPlayer: data[2],
+      xTurn: data[3],
+      gameOver: data[4],
+      xWon: data[5]
+    }
+  },
+
+  updateBoard: function(game, user) {
+    if(game) {
+      $('#game').show();
+      $('#create-game').hide();
+
+      _.each(game.board, function(square, index) {
+        if (square == 0) {
+          $('#board-' + index).text(" . ");
+          $('#board-' + index).prop("disabled", false);
+        } else {
+          $('#board-' + index).text(square);
+          $('#board-' + index).prop("disabled", true);
+        }
+      });
+
+      var playerString = App.playerString(game, user);
+      $('#player-info').text('You are ' + playerString);
+
+      var turn = (game.xTurn ? 'X' : 'O');
+      $('#player-turn').text('It is Player ' + turn + "'s turn!");  
+    } else {
+      $('#game').hide();
+      $('#create-game').show();
+    }
+  }
 };
 
 $(function() {

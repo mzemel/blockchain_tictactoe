@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Pete's Pet Shop</title>
+    <title>Blockchain Tic Tac Toe</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -21,39 +21,52 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-12 col-sm-8 col-sm-push-2">
-          <h1 class="text-center">Pete's Pet Shop</h1>
+          <h1 class="text-center">Blockchain Tic Tac Toe</h1>
           <hr/>
           <br/>
         </div>
       </div>
 
-      <div id="petsRow" class="row">
-        <!-- PETS LOAD HERE -->
-      </div>
-    </div>
-
-    <div id="petTemplate" style="display: none;">
-      <div class="col-sm-6 col-md-4 col-lg-3">
-        <div class="panel panel-default panel-pet">
-          <div class="panel-heading">
-            <h3 class="panel-title">Scrappy</h3>
+      <div id="game" class="container" style="display: none;">
+        <div id="board" class="col-md-8">
+          <div class="row">
+            <button id="board-0" data-id="0" class="col-md-4 btn btn-default" type="button">0</button>
+            <button id="board-1" data-id="1" class="col-md-4 btn btn-default" type="button">1</button>
+            <button id="board-2" data-id="2" class="col-md-4 btn btn-default" type="button">2</button>
           </div>
-          <div class="panel-body">
-            <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center" style="width: 100%;" src="https://animalso.com/wp-content/uploads/2017/01/Golden-Retriever_6.jpg" data-holder-rendered="true">
-            <br/><br/>
-            <strong>Breed</strong>: <span class="pet-breed">Golden Retriever</span><br/>
-            <strong>Age</strong>: <span class="pet-age">3</span><br/>
-            <strong>Location</strong>: <span class="pet-location">Warren, MI</span><br/><br/>
-            <button class="btn btn-default btn-adopt" type="button" data-id="0">Adopt</button>
+          <div class="row">
+            <button id="board-3" data-id="3" class="col-md-4 btn btn-default" type="button">3</button>
+            <button id="board-4" data-id="4" class="col-md-4 btn btn-default" type="button">4</button>
+            <button id="board-5" data-id="5" class="col-md-4 btn btn-default" type="button">5</button>
+          </div>
+          <div class="row">
+            <button id="board-6" data-id="6" class="col-md-4 btn btn-default" type="button">6</button>
+            <button id="board-7" data-id="7" class="col-md-4 btn btn-default" type="button">7</button>
+            <button id="board-8" data-id="8" class="col-md-4 btn btn-default" type="button">8</button>
           </div>
         </div>
+        <div id="board-info" class="col-md-4 float-right">
+          <div id="player-info"></div>
+          <div id="player-turn"></div>
+          <button id="destroy-game" class="btn btn-default" type="button">Destroy game</button>
+          <div id="game-over" style="display: none;"></div>
+        </div>
       </div>
-    </div>
+
+      <form id="create-game" class="container">
+        <div class="col-md-8">
+          <input type="text" placeholder="0x325512736aef7c8dfd08c599c237cf9c74be0814" style="width: 100%;"></input>
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-default btn-submit">Create game</button>
+        </div>
+      </form>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/lodash.core.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
     <script src="js/app.js"></script>
